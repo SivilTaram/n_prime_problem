@@ -8,27 +8,41 @@ namespace n_prime_count
 {
     class Program
     {
-        const int L1D_CACHE_SIZE = 262144;
+        //const int L1D_CACHE_SIZE = 262144;
         static void Main(string[] args)
         {
-            Segmented_Sieve(10000000);
+            Normal_Sieve(10000000);
         }
 
-        public static void Segmented_Sieve(Int64 limit)
+        //benchMark: 10,000,000 - 7,000 + ms
+        public static void Normal_Sieve(int nth)
         {
-            int sqrt = (int)Math.Sqrt(limit);
-            int segment_size = Math.Max(sqrt, L1D_CACHE_SIZE);
+            int startTime = System.Environment.TickCount;
+            int limit = (int)(nth * (Math.Log(nth) + Math.Log(Math.Log(nth))));
+            int count = 0;
 
             // generate all small primes <= sqrt.
-            List<bool> is_prime = new List<bool>(sqrt + 1);
-            for(int i = 0; i < sqrt + 1; i++)
+            List<bool> is_prime = new List<bool>(limit+1);
+
+            for (int i = 0; i < limit+1; i++)
                 is_prime.Add(true);
 
-        
-            for(int i= 2; i * i <= sqrt; i++)
+            for (int i = 2; i * i <= limit; i++)
                 if (is_prime[i])
-                    for (int j = i * i; j <= sqrt; j += i)
+                    for (int j = i * i; j <= limit; j += i)
                         is_prime[j] = false;
+
+            for(int i=2;i<is_prime.Count();i++)
+            {
+                if (is_prime[i])
+                    count++;
+                if(count == nth)
+                {
+                    Console.WriteLine("The nth_prime is:{0} SpentTime:{1}ms",i,Environment.TickCount- startTime);
+                    break;
+                }
+            }
+            Console.ReadKey();
         }
     }
 }
