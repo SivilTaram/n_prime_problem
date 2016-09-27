@@ -12,7 +12,7 @@ namespace n_prime_count
         static void Main(string[] args)
         {
             //Normal_Sieve(10000000);
-            Bit_Sieve(10000000);
+            Bit_Sieve(100000000);
         }
 
         //benchMark: 10,000,000 - 7,000 + ms
