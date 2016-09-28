@@ -12,30 +12,31 @@ namespace n_prime_count
         static void Main(string[] args)
         {
             //Normal_Sieve(10000000);
-            Bit_Sieve(100000000);
+            //Bit_Sieve(5);
+            Local_Bit_Sieve(50);
         }
 
         //benchMark: 10,000,000 - 7,000 + ms
         public static void Normal_Sieve(int nth)
         {
             int startTime = System.Environment.TickCount;
-            int limit = (int)(nth * (Math.Log(nth) + Math.Log(Math.Log(nth))));
+            int limit = nth < 6 ? 25 : (int)(nth * (Math.Log(nth) + Math.Log(Math.Log(nth))));
             int count = 0;
 
             // generate all primes which is less than limit
-            List<bool> is_prime = new List<bool>(limit+1);
+            List<bool> isPrime = new List<bool>(limit+1);
 
             for (int i = 0; i < limit+1; i++)
-                is_prime.Add(true);
+                isPrime.Add(true);
 
             for (int i = 2; i * i <= limit; i++)
-                if (is_prime[i])
+                if (isPrime[i])
                     for (int j = i * i; j <= limit; j += i)
-                        is_prime[j] = false;
+                        isPrime[j] = false;
 
-            for(int i=2;i<is_prime.Count();i++)
+            for(int i=2;i<isPrime.Count();i++)
             {
-                if (is_prime[i])
+                if (isPrime[i])
                     count++;
                 if(count == nth)
                 {
@@ -49,32 +50,32 @@ namespace n_prime_count
         public static void Bit_Sieve(int nth)
         {
             int startTime = Environment.TickCount;
-            int limit = (int)(nth * (Math.Log(nth) + Math.Log(Math.Log(nth))));
+            int limit = nth < 6 ? 25 : (int)(nth * (Math.Log(nth) + Math.Log(Math.Log(nth))));
             int count = 0;
 
             int total = limit + 1;
             int sqrt = (int)Math.Sqrt(limit) + 1;
             //use uint to replace bool.
             //[31 30 29 ... 0] every number maps to a bit in uint.
-            List<uint> is_prime = new List<uint>((total >> 5) + 1);
+            List<uint> isPrime = new List<uint>((total >> 5) + 1);
 
             for (int i = 0; i < (total >> 5) + 1; i++)
-                is_prime.Add(0x0);
+                isPrime.Add(0x0);
 
             //Represent the prime from 0 ~ 31.
 
             for (int i = 2; i <= sqrt; i++)
                 // is_prime[i>>5] bit i % 32 == 0 means it is a prime
-                if ((is_prime[i >> 5] & (1 << (i & 31))) == 0)
+                if ((isPrime[i >> 5] & (1 << (i & 31))) == 0)
                 {
                     for (int j = i * i; j <= total; j += i)
                         // is_prime[j>>5] bit j % 32 = 1;
-                        is_prime[j >> 5] |= (uint)1 << (j & 31);
+                        isPrime[j >> 5] |= (uint)1 << (j & 31);
                 }
 
             for (int i = 2; i < total; i++)
             {
-                if ((is_prime[i >> 5] & (1 << (i & 31))) == 0)
+                if ((isPrime[i >> 5] & (1 << (i & 31))) == 0)
                 {
                     count++;
                     if (count == nth)
@@ -83,8 +84,74 @@ namespace n_prime_count
                     }
                 }
             }
-
             Console.ReadKey();
+        }
+
+        public static void Local_Bit_Sieve(int nth)
+        {
+            int startTime = Environment.TickCount;
+            int limit = nth < 6 ? 25 :(int)(nth * (Math.Log(nth) + Math.Log(Math.Log(nth))));
+            int sqrt = (int) Math.Sqrt(limit) + 1;
+            
+            //Get all primes which are less than \sqrt{limit}
+            List<uint> isPrime = new List<uint>((sqrt >> 5) +1);
+            for (int i = 0; i < (sqrt >> 5) + 1; i++)
+                isPrime.Add(0x0);
+            for (int i = 2; i * i <= sqrt; i++)
+                // is_prime[i>>5] bit i % 32 == 0 means it is a prime
+                if ((isPrime[i >> 5] & (1 << (i & 31))) == 0)
+                {
+                    for (int j = i * i; j <= sqrt; j += i)
+                        // is_prime[j>>5] bit j % 32 = 1;
+                        isPrime[j >> 5] |= (uint)1 << (j & 31);
+                }
+
+            //smallPrimes store the primes
+            List<int> smallPrimes = new List<int>();
+            for (int i = 2; i < sqrt; i++)
+            {
+                if ((isPrime[i >> 5] & (1 << (i & 31))) == 0)
+                {
+                    smallPrimes.Add(i);
+                }
+            }
+
+            int segSize = Math.Max(sqrt,256 * 256);
+
+            uint[] primeSeg = new uint[segSize];
+            
+            //allPrimes store all primes which are found.
+            List<int> allPrimes = new List<int>();
+            allPrimes.AddRange(smallPrimes);
+
+            int high = segSize << 5;
+            //chunk [2,limit] into different segments
+            for (int low = sqrt; low <= limit; low += segSize << 5)
+            {
+                Array.Clear(primeSeg,0,segSize);
+                //for each prime, use them to mark the [low,low + segSize]
+                foreach (var sPrime in smallPrimes)
+                {
+                    int initValue = low % sPrime;
+                    for (int i = (initValue == 0 ? initValue : sPrime - initValue); i < high; i += sPrime)
+                    {
+                        primeSeg[i >> 5] |= (uint) 1 << (i & 31);
+                    }
+                }
+
+                for (int i = 0; i < high; i++)
+                {
+                    if ((primeSeg[i >> 5] & (1 << (i & 31))) == 0)
+                        allPrimes.Add(i + low);
+                }
+
+                if (allPrimes.Count() > nth)
+                {
+                    Console.WriteLine("The {0}th_prime is:{1} SpentTime:{2}ms",nth, allPrimes[nth-1],
+                        Environment.TickCount - startTime);
+                    break;
+                }
+            }
         }
     }
 }
