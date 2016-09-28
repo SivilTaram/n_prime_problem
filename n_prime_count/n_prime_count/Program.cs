@@ -11,28 +11,28 @@ namespace n_prime_count
         //const int L1D_CACHE_SIZE = 262144;
         static void Main(string[] args)
         {
-            string input = args[0];
-
-            if (input.Length <= 10 & input[0] <= '7')
+            if (args != null && args.Length == 1)
             {
+                string input = args[0];
+
                 try
                 {
                     int i = Convert.ToInt32(input);
-                    if(i>=1 && i <= 50000)
+                    if (i >= 1 && i <= 50000)
                         Bit_Sieve(i);
-                    else if (i> 50000)
+                    else if (i > 50000)
                         Local_Bit_Sieve(i);
                     else
                         throw new Exception();
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Bad input format!");
+                    Console.WriteLine("Sorry, I can't support the number.");
                 }
             }
             else
             {
-                Console.WriteLine("Sorry, I can't support so big number.");
+                Console.WriteLine("Please input the number nth.");
             }
         }
 
