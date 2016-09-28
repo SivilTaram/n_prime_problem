@@ -11,9 +11,29 @@ namespace n_prime_count
         //const int L1D_CACHE_SIZE = 262144;
         static void Main(string[] args)
         {
-            //Normal_Sieve(10000000);
-            //Bit_Sieve(5);
-            Local_Bit_Sieve(50);
+            string input = args[0];
+
+            if (input.Length <= 10 & input[0] <= '7')
+            {
+                try
+                {
+                    int i = Convert.ToInt32(input);
+                    if(i>=1 && i <= 50000)
+                        Bit_Sieve(i);
+                    else if (i> 50000)
+                        Local_Bit_Sieve(i);
+                    else
+                        throw new Exception();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Bad input format!");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Sorry, I can't support so big number.");
+            }
         }
 
         //benchMark: 10,000,000 - 7,000 + ms
@@ -40,11 +60,11 @@ namespace n_prime_count
                     count++;
                 if(count == nth)
                 {
-                    Console.WriteLine("The nth_prime is:{0} SpentTime:{1}ms",i,Environment.TickCount- startTime);
+                    Console.WriteLine("The {0}th_prime is:{1} SpentTime:{2}ms", nth, i,
+                        Environment.TickCount - startTime);
                     break;
                 }
             }
-            Console.ReadKey();
         }
 
         public static void Bit_Sieve(int nth)
@@ -80,11 +100,12 @@ namespace n_prime_count
                     count++;
                     if (count == nth)
                     {
-                        Console.WriteLine("The nth_prime is:{0} SpentTime:{1}ms", i, Environment.TickCount - startTime);
+                        Console.WriteLine("The {0}th_prime is:{1} SpentTime:{2}ms", nth, i,
+                            Environment.TickCount - startTime);
+                        break;
                     }
                 }
             }
-            Console.ReadKey();
         }
 
         public static void Local_Bit_Sieve(int nth)
