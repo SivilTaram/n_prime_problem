@@ -36,9 +36,9 @@ namespace n_prime_count
             //{
             //    Console.WriteLine("Please input the number nth.");
             //}
-            //Local_Bit_Sieve(100000000,256*256);
+            //Local_Bit_Sieve(10000000,256*256);
             //Local_Bit_Sieve_Long(2147483647, 32 );
-            Local_Bit_Sieve_Long(100000000,256*256);
+            Local_Bit_Sieve_Long(2147483647, 256*256);
             Console.ReadKey();
         }
 
@@ -197,65 +197,63 @@ namespace n_prime_count
 
             segSize = Math.Max(sqrt, segSize);
 
-            BitArray isPrime = new BitArray(sqrt);
-            //Get all primes which are less than \sqrt{limit}
-
+            List<uint> isPrime = new List<uint>((sqrt >> 5) + 1);
+            for (int i = 0; i < (sqrt >> 5) + 1; i++)
+                isPrime.Add(0x0);
             for (int i = 2; i * i <= sqrt; i++)
                 // is_prime[i>>5] bit i % 32 == 0 means it is a prime
-                if (!isPrime[i])
+                if ((isPrime[i >> 5] & (1 << (i & 31))) == 0)
                 {
-                    for (int j = i*i; j < sqrt; j += i)
-                        isPrime[j] = true;
+                    for (int j = i * i; j <= sqrt; j += i)
+                        // is_prime[j>>5] bit j % 32 = 1;
+                        isPrime[j >> 5] |= (uint)1 << (j & 31);
                 }
 
             //smallPrimes store the primes
             List<int> smallPrimes = new List<int>();
             for (int i = 2; i < sqrt; i++)
             {
-                if (!isPrime[i])
+                if ((isPrime[i >> 5] & (1 << (i & 31))) == 0)
                 {
                     smallPrimes.Add(i);
                 }
             }
 
-            BitArray primeSeg = new BitArray(segSize << 5);
+            //allPrimes store the local segment primes
+            List<long> segPrimes = new List<long>();
+            uint[] primeSeg = new uint[segSize];
 
-            //allPrimes store all primes which are found.
-            List<long> allPrimes = new List<long>();
-            allPrimes.AddRange(smallPrimes.Select(o => (long)o));
-
-            int high = segSize << 5;
-            int count = 0;
-            int roundIndex = 0;
+            long high = segSize << 5;
+            long count = 0;
+            segPrimes.AddRange(smallPrimes.Select(o=> (long)o));
             //chunk [2,limit] into different segments
             for (long low = sqrt; low <= limit; low += high)
             {
-                roundIndex = 0;
-                primeSeg.SetAll(false);
+                Array.Clear(primeSeg, 0, segSize);
                 //for each prime, use them to mark the [low,low + segSize]
                 foreach (var sPrime in smallPrimes)
                 {
                     int initValue =(int)(low % sPrime);
                     for (int i = (initValue == 0 ? initValue : sPrime - initValue); i < high; i += sPrime)
                     {
-                        primeSeg[i] = true;
+                        primeSeg[i >> 5] |= (uint)1 << (i & 31);
                     }
                 }
 
                 for (int i = 0; i < high; i++)
                 {
-                    if (!primeSeg[i])
-                        allPrimes.Add(i + low);
+                    if ((primeSeg[i >> 5] & (1 << (i & 31))) == 0)
+                        segPrimes.Add(i + low);
                 }
 
-                count += allPrimes.Count();
+                count += segPrimes.Count();
 
                 if (count > nth)
                 {
-                    nthPrime = allPrimes[allPrimes.Count() - 1 - count + nth];
+                    nthPrime = segPrimes[(int)(segPrimes.Count() - 1 - count + nth)];
                     break;
                 }
-                allPrimes.Clear();
+                segPrimes.Clear();
             }
             Watch.Stop();
 
