@@ -13,33 +13,44 @@ namespace n_prime_count
         //const int L1D_CACHE_SIZE = 262144;
         static void Main(string[] args)
         {
-            //if (args != null && args.Length == 1)
-            //{
-            //    string input = args[0];
+            if (args != null && args.Length == 1)
+            {
+                string input = args[0];
 
-            //    try
-            //    {
-            //        int i = Convert.ToInt32(input);
-            //        if (i >= 1 && i <= 50000)
-            //            Bit_Sieve(i);
-            //        else if (i > 50000)
-            //            Local_Bit_Sieve_Long(i, 256 * 256);
-            //        else
-            //            throw new Exception();
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Console.WriteLine("Sorry, I can't support the number.");
-            //    }
-            //}
-            //else
-            //{
-            //    Console.WriteLine("Please input the number nth.");
-            //}
-            //Local_Bit_Sieve(10000000,256*256);
-            //Local_Bit_Sieve_Long(2147483647, 32 );
-            Local_Bit_Sieve_Long(2147483647, 256*256);
-            Console.ReadKey();
+                try
+                {
+                    int i = Convert.ToInt32(input);
+                    long nthPrime = 0;
+                    if (i >= 1 && i <= 50000)
+                        nthPrime = Bit_Sieve(i);
+                    else if (i > 50000)
+                        nthPrime = Local_Bit_Sieve_Long(i, 256 * 256);
+                    else
+                        throw new Exception();
+                    string output = nthPrime.ToString();
+                    int init = output.Length % 3 == 0 ? 3 : output.Length % 3;
+                    for(int k = 0; k < init; k++)
+                    {
+                        Console.Write(output[k]);
+                    }
+                    for(int k = init; k < output.Length; k += 3)
+                    {
+                        Console.Write(" ");
+                        for (int j = 0; j < 3; j++)
+                        {
+                            Console.Write(output[k+j]);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Sorry, I can't support the number.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Please input the number nth.");
+            }
         }
 
         //benchMark: 10,000,000 - 7,000 + ms
@@ -73,7 +84,7 @@ namespace n_prime_count
             }
         }
 
-        public static void Bit_Sieve(int nth)
+        public static int Bit_Sieve(int nth)
         {
             int startTime = Environment.TickCount;
             int limit = nth < 6 ? 25 : (int)(nth * (Math.Log(nth) + Math.Log(Math.Log(nth))));
@@ -106,12 +117,11 @@ namespace n_prime_count
                     count++;
                     if (count == nth)
                     {
-                        Console.WriteLine("The {0}th_prime is:{1} SpentTime:{2}ms", nth, i,
-                            Environment.TickCount - startTime);
-                        break;
+                        return i;
                     }
                 }
             }
+            return -1;
         }
 
         public static void Local_Bit_Sieve(int nth,int segSize)
@@ -185,11 +195,11 @@ namespace n_prime_count
             Console.WriteLine("The {0}th prime is :{1}, Spent time :{2}", nth, allPrimes[nth - 1], watchTime);
         }
 
-        public static void Local_Bit_Sieve_Long(int nth, int segSize)
+        public static long Local_Bit_Sieve_Long(int nth, int segSize)
         {
             Stopwatch Watch = new Stopwatch();
             Watch.Start();
-            //要测试的代码  
+
             long nthPrime = 0;
 
             long limit = nth < 6 ? 25 : (long)(nth * (Math.Log(nth) + Math.Log(Math.Log(nth))));
@@ -255,10 +265,7 @@ namespace n_prime_count
                 }
                 segPrimes.Clear();
             }
-            Watch.Stop();
-
-            long watchTime = Watch.ElapsedMilliseconds;//花费时间  
-            Console.WriteLine("The {0}th prime is :{1}, Spent time :{2}",nth,nthPrime,watchTime);
+            return nthPrime;
         }
     }
 }
